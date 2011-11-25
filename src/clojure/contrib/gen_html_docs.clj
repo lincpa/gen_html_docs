@@ -90,84 +90,6 @@ function toggle(targetid, linkid, textWhenOpen, textWhenClosed)
       //]]>
 ")
 
-(def ^:dynamic *style* "
-.library
-{
-  padding: 0.5em 0 0 0 
-}
-.all-libs-toggle,.library-contents-toggle
-{
- font-size: small;
-}
-.all-libs-toggle a,.library-contents-toggle a
-{
- color: white
-}
-.library-member-doc-whitespace
-{
- white-space: pre
-}
-.library-member-source-toggle
-{
-  font-size: small;
-  margin-top: 0.5em
-}
-.library-member-source
-{
-  display: none;
-  border-left: solid lightblue 
-}
-.library-member-docs
-{
-  font-family:monospace
-}
-.library-member-arglists
-{
-  font-family: monospace
-}
-.library-member-type
-{
-  font-weight: bold; 
-  font-size: small;
-  font-style: italic;
-  color: darkred
-}
-.lib-links
-{
-  margin: 0 0 1em 0
-}
-
-.lib-link-header
-{
-  color: white;
-  background: darkgreen;
-  width: 100%
-}
-
-.library-name 
-{ 
-  color: white;
-  background: darkblue;
-  width: 100%
-}
-
-.missing-library
-{
-  color: darkred; 
-  margin: 0 0 1em 0 
-}
-
-.library-members
-{
-  list-style: none
-}
-
-.library-member-name
-{
-  font-weight: bold;
-  font-size: 105%
-}")
-
 (defn- extract-documentation 
   "Pulls the documentation for a var v out and turns it into HTML"
   [v]
@@ -321,37 +243,44 @@ symbol lib."
                  (map #(generate-lib-member lib %) lib-members)));;])
 )))
 
-
-
 (defn load-lib
   [lib]
   (try 
     (require lib)
     (catch System.Exception x nil)))
 
+(defn- generate-function-link
+  [fname]
+   [:div {:style "margin-left: 1em;" :class "toc-entry"}
+     [:a {:href (str "#" fname)} fname]])
+
 (defn- generate-lib-link 
   "Generates a hyperlink to the documentation for a namespace given
 lib, a symbol identifying that namespace."
   [lib]
-  (let [ns (find-ns lib)]
-    (if ns
-      [:a {:class "lib-link" :href (str "#" (anchor-for-library lib))} (str (ns-name ns))])))
+    (map #(generate-function-link (key %)) (sort (ns-publics lib))))
+;;  (let [ns (find-ns lib)]
+;;    (if ns
+;;      [:div {:style "margin-left: 1em;" :class "toc-entry"}
+;;        [:a {:class "lib-link" :href (str "#" (anchor-for-library lib))} (str (ns-name ns))]]     
+;;      )))
 
 (defn- generate-lib-links 
   "Generates the list of hyperlinks to each namespace, given libs, a
 vector of symbols naming namespaces."
   [libs]
-  (into [:div {:class "lib-links"} 
-	 [:div {:class "lib-link-header"} "Namespaces"
-	  [:span {:class "all-libs-toggle"} 
-	   " [ "
-	   [:a {:href "javascript:expandAllNamespaces()"}
-	    "Expand All"]
-	   " ] [ "
-	   [:a {:href "javascript:collapseAllNamespaces()"}
-	    "Collapse All"]
-	   " ]"]]] 
-	(interpose " " (map generate-lib-link libs))))
+    (map generate-lib-link libs))
+;;  (into [:div {:class "lib-links"} 
+;;	 [:div {:class "lib-link-header"} "Namespaces"
+;;	  [:span {:class "all-libs-toggle"} 
+;;	   " [ "
+;;	   [:a {:href "javascript:expandAllNamespaces()"}
+;;	    "Expand All"]
+;;	   " ] [ "
+;;	   [:a {:href "javascript:collapseAllNamespaces()"}
+;;	    "Collapse All"]
+;;	   " ]"]]] 
+;;	(interpose " " (map generate-lib-link libs)))
 
 (defn- anchor-for-library-contents 
   "Returns an HTML ID that identifies the element that holds the
@@ -392,13 +321,7 @@ visibility of the library contents."
            [:title "Clojure documentation browser"]
            [:link {:media "all" :type "text/css" :href "http://richhickey.github.com/clojure-contrib/static/clojure.css" :rel "stylesheet"}]
            [:link {:media "all" :type "text/css" :href "http://richhickey.github.com/clojure-contrib/static/wiki.css" :rel "stylesheet"}]
-	   [:link {:media "all" :type "text/css" :href "http://richhickey.github.com/clojure-contrib/static/internal.css" :rel "stylesheet"}]
-           [:script {:language "JavaScript" :type "text/javascript"} [:raw! *script*]]
-           [:script {:language "JavaScript" :type "text/javascript"} 
-             [:raw! "// <![CDATA[!" \newline]
-             (generate-all-namespaces-action-script "expand" "-" libs)
-             (generate-all-namespaces-action-script "collapse" "+" libs)
-             [:raw! \newline "// ]]>"]]]
+	   [:link {:media "all" :type "text/css" :href "http://richhickey.github.com/clojure-contrib/static/internal.css" :rel "stylesheet"}]]
           (let [lib-vec (sort libs)]
             [:body
                     [:div {:id "AllContentContainer"}
@@ -450,10 +373,12 @@ visibility of the library contents."
                                    (map generate-lib-doc lib-vec)
                                   
                                  ]]]]]]] )
-                ;;(map generate-lib-doc lib-vec)))
+                
         ]))
     (.ToString writer)))
 
 (defn generate-documentation-to-file
   [path libs]
+  (if (System.IO.File/Exists path)
+     (System.IO.File/Delete path))
   (spit path (generate-documentation libs)))
