@@ -3,93 +3,6 @@
   (require [clojure.core])
   (require [clojure.string :as s]))  
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Doc generation constants
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def ^:dynamic *script* " // <![CDATA[
-
-function getElem(id)
-{
-  if( document.getElementById )
-  {
-    return document.getElementById( id )
-  }
-  else if ( document.all )
-  {
-    return eval( 'document.all.' + id )
-  }
-  else
-    return false;
-}
-
-function setDisplayStyle(id,displayStyle)
-{
-  var elem = getElem (id)
-  if (elem)
-  {
-    elem.style.display = displayStyle
-  }
-
-}
-
-function setLinkToggleText (id, text)
-{
- var elem = getElem (id)
- if (elem)
- {
-   elem.innerHTML = text
- }
-}
-
-function collapse(id)
-{
-  setDisplayStyle (id, 'none')
-}
-
-function expand (id)
-{
-  setDisplayStyle (id, 'block')
-}
-
-function toggleSource( id )
-{
-  toggle(id, 'linkto-' + id, 'Hide Source', 'Show Source')
-}
-
-function toggle(targetid, linkid, textWhenOpen, textWhenClosed)
-{
-  var elem = getElem (targetid)
-  var link = getElem (linkid)
-
-  if (elem && link)
-  {
-    var isOpen = false
-    if (elem.style.display == '')
-    {
-      isOpen = link.innerHTML == textWhenOpen
-    }
-    else if( elem.style.display == 'block' )
-    {
-      isOpen = true
-    }
-    
-    if (isOpen)
-    {
-      elem.style.display = 'none'
-      link.innerHTML = textWhenClosed
-    }
-    else
-    {
-      elem.style.display = 'block'
-      link.innerHTML = textWhenOpen
-    }
-  }
-}
-
-      //]]>
-")
-
 (defn- extract-documentation 
   "Pulls the documentation for a var v out and turns it into HTML"
   [v]
@@ -120,7 +33,7 @@ function toggle(targetid, linkid, textWhenOpen, textWhenClosed)
   "Returns a suitable HTML anchor name given a library id and a member
   id" 
   [libid memberid]
-  (str "member-" libid "/" memberid))
+  (str libid "/" memberid))
 
 (defn- anchor-for-library 
   "Given a symbol id identifying a namespace, returns an identifier
@@ -250,47 +163,31 @@ symbol lib."
     (catch System.Exception x nil)))
 
 (defn- generate-function-link
-  [fname]
+  [lib fname]
    [:div {:style "margin-left: 1em;" :class "toc-entry"}
-     [:a {:href (str "#" fname)} fname]])
+     [:a {:href (str  "#" lib "/" fname)} fname]])
 
 (defn- generate-lib-link 
   "Generates a hyperlink to the documentation for a namespace given
 lib, a symbol identifying that namespace."
   [lib]
-    (map #(generate-function-link (key %)) (sort (ns-publics lib))))
-;;  (let [ns (find-ns lib)]
-;;    (if ns
-;;      [:div {:style "margin-left: 1em;" :class "toc-entry"}
-;;        [:a {:class "lib-link" :href (str "#" (anchor-for-library lib))} (str (ns-name ns))]]     
-;;      )))
+    (map #(generate-function-link lib (key %)) (sort (ns-publics lib))))
 
 (defn- generate-lib-links 
   "Generates the list of hyperlinks to each namespace, given libs, a
-vector of symbols naming namespaces."
+   vector of symbols naming namespaces."
   [libs]
     (map generate-lib-link libs))
-;;  (into [:div {:class "lib-links"} 
-;;	 [:div {:class "lib-link-header"} "Namespaces"
-;;	  [:span {:class "all-libs-toggle"} 
-;;	   " [ "
-;;	   [:a {:href "javascript:expandAllNamespaces()"}
-;;	    "Expand All"]
-;;	   " ] [ "
-;;	   [:a {:href "javascript:collapseAllNamespaces()"}
-;;	    "Collapse All"]
-;;	   " ]"]]] 
-;;	(interpose " " (map generate-lib-link libs)))
 
 (defn- anchor-for-library-contents 
   "Returns an HTML ID that identifies the element that holds the
-documentation contents for the specified library."
+   documentation contents for the specified library."
   [lib]
   (str "library-contents-" lib))
 
 (defn- anchor-for-library-contents-toggle 
   "Returns an HTML ID that identifies the element that toggles the
-visibility of the library contents."
+  visibility of the library contents."
   [lib]
   (str "library-contents-toggle-" lib))
 
@@ -328,7 +225,7 @@ visibility of the library contents."
                      [:div {:id "Header"}
                        [:a {:id "Logo" :href "index.html"}
                          [:img {:alt "Clojure" :height "100" :width "100" :src "http://richhickey.github.com/clojure-contrib/static/clojure-icon.gif"}]]
-                       [:h1 "Clojure (CLR) API Reference"]
+                       [:h1 "Clojure-clr API Reference"]
                      ]
                      [:div {:id "leftcolumn"}
                        [:div {:style "text-align: center;"}]
