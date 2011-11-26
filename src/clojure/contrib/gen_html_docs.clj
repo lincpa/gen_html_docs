@@ -107,15 +107,18 @@ visibility of the library contents."
      nil)))
 
 (defn- generate-lib-member [libid [n v]]
+ (if (and (not (nil? (:file (meta v))))
+          (not (nil? (re-matches #".*clr.*" (:file (meta v))))))
   [:div {:id "var-entry"}
    [:br][:hr]
    [:h2 {:id (anchor-for-member libid n)} (str n)]
    [:span {:id "var-type"} (name (member-type v))]
    [:br]
+   [:pre {:id "var-usage"} (str (:file (meta v)))]
    [:pre {:id "var-usage"} (str (:arglists (meta v)))]
    [:pre {:id "var-docstr"} (extract-documentation v)]
    [:em "Need to figure out how to do the link to the source"]
-  ])
+  ]))
 ;;   [:dt {:class "library-member-name"}
 ;;     (str n)]
 ;;    [:dd 
@@ -210,6 +213,7 @@ lib, a symbol identifying that namespace."
 (defn generate-documentation 
   [libs]
   (dorun (map load-lib libs))
+  (load-lib libs)
   (let [writer (new System.IO.StringWriter)]
     (binding [*out* writer]
       (prxml
@@ -279,3 +283,10 @@ lib, a symbol identifying that namespace."
   (if (System.IO.File/Exists path)
      (System.IO.File/Delete path))
   (spit path (generate-documentation libs)))
+
+
+(defn generate-documentation-to-files
+  [base-path libs]
+  (if (not (System.IO.Directory/Exists base-path))
+      (System.IO.Directory/CreateDirectory base-path))
+  (map #(generate-documentation-to-file (str base-path "\\" % ".html") [%]) libs))
