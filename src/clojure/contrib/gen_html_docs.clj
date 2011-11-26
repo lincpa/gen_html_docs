@@ -203,6 +203,39 @@ lib, a symbol identifying that namespace."
        \newline
        "}"))
 
+(defn- get-version-number
+ []
+  (str (:major *clojure-version*) "." (:minor *clojure-version*)))
+
+(defn- html-header
+  [lib]
+    [:head
+           [:title (str (ns-name (first lib)) " - Clojure-clr v" (get-version-number) " API Documentation")]
+           [:link {:href "http://clojure.github.com/clojure/static/favicon.png" :rel "shortcut icon"}]
+           [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/clojure.css" :rel "stylesheet"}]
+           [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/wiki.css" :rel "stylesheet"}]
+	   [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/internal.css" :rel "stylesheet"}]
+           ])
+
+(defn- left-nav
+  []
+  [:div {:id "leftcolumn"}
+    [:div ];;{:style "text-align: center;"}]
+     [:div {:class "menu"}
+      [:div {:class "WikiCustomNav WikiElement wiki"}
+       [:span {:class "toc-header"}
+        [:span {:id "project-name"} "Clojure-clr v"]
+        [:span {:id "version"} (get-version-number)]]
+       [:br]
+       [:ul 
+         [:li [:a {:class "wiki_link" :href "index.html"} "Overview"]]
+         [:li [:a {:class "wiki_link" :href "api-index.html"} "API Index"]]
+       ]
+       [:div {:class "NamespaceTOC"}
+         [:span {:class "toc-header"} "Namespaces" ]
+       ]
+      ]]])
+
 (defn generate-documentation 
   [libs]
   (dorun (map load-lib libs))
@@ -211,26 +244,18 @@ lib, a symbol identifying that namespace."
     (binding [*out* writer]
       (prxml
         [:html {:xmlns "http://www.w3.org/1999/xhtml"}
-         [:head
-           [:title "Clojure documentation browser"]
-           [:link {:media "all" :type "text/css" :href "http://richhickey.github.com/clojure-contrib/static/clojure.css" :rel "stylesheet"}]
-           [:link {:media "all" :type "text/css" :href "http://richhickey.github.com/clojure-contrib/static/wiki.css" :rel "stylesheet"}]
-	   [:link {:media "all" :type "text/css" :href "http://richhickey.github.com/clojure-contrib/static/internal.css" :rel "stylesheet"}]]
+          (html-header libs)
           (let [lib-vec (sort libs)]
             [:body
                     [:div {:id "AllContentContainer"}
                      [:div {:id "Header"}
                        [:a {:id "Logo" :href "index.html"}
                          [:img {:alt "Clojure" :height "100" :width "100" :src "http://richhickey.github.com/clojure-contrib/static/clojure-icon.gif"}]]
-                       [:h1 "Clojure-clr API Reference"]
+                       [:h1 
+                         [:a {:title "page header title" :id "page-header" :href "index.html"} "Clojure-clr API Reference"]]
                      ]
-                     [:div {:id "leftcolumn"}
-                       [:div {:style "text-align: center;"}]
-                       [:div {:class "menu"}
-                         [:div {:class "WikiCustomNav WikiElement wiki"}
-                           [:div {:class "BranchTOC"}
-                            [:a {:class "wiki_link" :href "#"} "Branches"]]]
-                       ]]]
+                     (left-nav)
+                     ]
                      [:div {:id "rightcolumn"}
                        [:div {:id "Content"}
                          [:div {:class "contentBox"}
