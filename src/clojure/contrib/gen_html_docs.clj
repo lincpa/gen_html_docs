@@ -29,6 +29,11 @@
    (catch Exception e
      :unknown)))
 
+(defn- is-clr-function
+  [v]
+  (and (not (nil? (:file (meta v))))
+          (not (nil? (re-matches #".*clr.*" (:file (meta v)))))))
+
 (defn- anchor-for-member 
   "Returns a suitable HTML anchor name given a library id and a member
   id" 
@@ -106,38 +111,22 @@ visibility of the library contents."
    (catch Exception ex
      nil)))
 
+(defn- is-clr-function
+  [v]
+  (and (not (nil? (:file (meta v))))
+          (not (nil? (re-matches #".*clr.*" (:file (meta v)))))))
+
 (defn- generate-lib-member [libid [n v]]
- (if (and (not (nil? (:file (meta v))))
-          (not (nil? (re-matches #".*clr.*" (:file (meta v))))))
+ (if (is-clr-function v)
   [:div {:id "var-entry"}
    [:br][:hr]
    [:h2 {:id (anchor-for-member libid n)} (str n)]
    [:span {:id "var-type"} (name (member-type v))]
-   [:br]
-   [:pre {:id "var-usage"} (str (:file (meta v)))]
    [:pre {:id "var-usage"} (str (:arglists (meta v)))]
+   [:pre {:id "var-usage"} (str (:file (meta v)))]
    [:pre {:id "var-docstr"} (extract-documentation v)]
    [:em "Need to figure out how to do the link to the source"]
   ]))
-;;   [:dt {:class "library-member-name"}
-;;     (str n)]
-;;    [:dd 
-;;     [:div {:class "library-member-info"}
-;;      [:span {:id "var-type"} (name (member-type v))]
-;;      " "
-;;      [:span {:class "library-member-arglists"} (str (:arglists (meta v)))]]
-;;     (into [:div {:class "library-member-docs"}] (extract-documentation v))
-;;       (let [member-source-id (id-for-member-source libid n)
-;;	   member-source-link-id (id-for-member-source-link libid n)]
-;;       (if-let [member-source (format-source libid n v)] 
-;;	 [:div {:class "library-member-source-section"}
-;;	  [:div {:class "library-member-source-toggle"}
-;;	   "[ "
-;;	   [:a {:href (format "javascript:toggleSource('%s')" member-source-id)
-;;		:id member-source-link-id} "Show Source"]
-;;	   " ]"]	  
-;;	  [:div {:class "library-member-source" :id member-source-id}
-;;	   [:pre member-source]]]))]]])
 
 (defn- generate-lib-member-link 
   "Emits a hyperlink to a member of a namespace given libid (a symbol
@@ -174,7 +163,11 @@ symbol lib."
   "Generates a hyperlink to the documentation for a namespace given
 lib, a symbol identifying that namespace."
   [lib]
-    (map #(generate-function-link lib (key %)) (sort (ns-publics lib))))
+   (let [lib-members (sort (ns-publics lib))]
+    (map #(if (is-clr-function (val %)) 
+             (generate-function-link lib (key %))) lib-members)))
+    ;;  (map #(generate-lib-member lib %) lib-members)));;])
+    ;; (map #(generate-function-link lib (key %)) (sort (ns-publics lib))))
 
 (defn- generate-lib-links 
   "Generates the list of hyperlinks to each namespace, given libs, a
