@@ -123,7 +123,6 @@ visibility of the library contents."
    [:h2 {:id (anchor-for-member libid n)} (str n)]
    [:span {:id "var-type"} (name (member-type v))]
    [:pre {:id "var-usage"} (str (:arglists (meta v)))]
-   [:pre {:id "var-usage"} (str (:file (meta v)))]
    [:pre {:id "var-docstr"} (extract-documentation v)]
    [:em "Need to figure out how to do the link to the source"]
   ]))
@@ -217,8 +216,12 @@ lib, a symbol identifying that namespace."
 	   [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/internal.css" :rel "stylesheet"}]
            ])
 
+(defn- get-ns-link
+  [nspace]
+  [:li [:a {:href (str (name nspace) ".html") :class "wiki_link"} (name nspace)]])
+
 (defn- left-nav
-  []
+  [all-libs]
   [:div {:id "leftcolumn"}
     [:div ];;{:style "text-align: center;"}]
      [:div {:class "menu"}
@@ -233,11 +236,15 @@ lib, a symbol identifying that namespace."
        ]
        [:div {:class "NamespaceTOC"}
          [:span {:class "toc-header"} "Namespaces" ]
+         [:ul {:id "left-sidebar-list"}
+           ;;[:li [:a {:href "namespace.html" :class "wiki_link"} (name (first all-libs))]]
+           (map get-ns-link all-libs)
+         ]
        ]
       ]]])
 
 (defn generate-documentation 
-  [libs]
+  [libs all-libs]
   (dorun (map load-lib libs))
   (load-lib libs)
   (let [writer (new System.IO.StringWriter)]
@@ -254,7 +261,7 @@ lib, a symbol identifying that namespace."
                        [:h1 
                          [:a {:title "page header title" :id "page-header" :href "index.html"} "Clojure-clr API Reference"]]
                      ]
-                     (left-nav)
+                     (left-nav all-libs)
                      ]
                      [:div {:id "rightcolumn"}
                        [:div {:id "Content"}
@@ -297,14 +304,14 @@ lib, a symbol identifying that namespace."
     (.ToString writer)))
 
 (defn generate-documentation-to-file
-  [path libs]
+  [path libs all-libs]
   (if (System.IO.File/Exists path)
      (System.IO.File/Delete path))
-  (spit path (generate-documentation libs)))
+  (spit path (generate-documentation libs all-libs)))
 
 
 (defn generate-documentation-to-files
   [base-path libs]
   (if (not (System.IO.Directory/Exists base-path))
       (System.IO.Directory/CreateDirectory base-path))
-  (map #(generate-documentation-to-file (str base-path "\\" % ".html") [%]) libs))
+  (map #(generate-documentation-to-file (str base-path "\\" % ".html") [%] libs) libs))
