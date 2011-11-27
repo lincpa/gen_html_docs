@@ -275,6 +275,10 @@ lib, a symbol identifying that namespace."
                                      [:a {:href "#toc0"} "Overview"]
                                      (generate-lib-links lib-vec) 
                                 ]]]
+                                ;;; ----------------------------------------------
+                                ;;; some variation of the line: (meta (first (all-ns)))
+                                ;;; should get me the info I'm after
+                                ;;; ----------------------------------------------
                                 [:div {:id "content-tag"}
                                   [:h1 {:id "overview"} "API for "
                                      [:span {:id "namespace-name"} "Namespace name here"]
