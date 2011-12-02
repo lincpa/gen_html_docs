@@ -5,7 +5,9 @@ I have started to do port of the clojure.contrib.gen_html_docs over to the CLR w
 ## TODO
 In no real order
 
-<del> * Grab the namespace metadata and display the documentation like the function/var docs. </del>
 * Link to the code for the function
 * Add 'real' CLR only documentation support.  Currently it will only document functions that live in a file that have CLR in the path. Obviously this isn't the best way to go.  I'd like to add something to functions that flag them as clr only.
 * A better way to construct the Namespace TOC on the left of the page. 
+
+## Completed
+* Grab the namespace metadata and display the documentation like the function/var docs. 
