@@ -1,4 +1,13 @@
-(ns clojure.contrib.gen-html-docs
+(ns
+  #^{ :author "Rob Rowe" :clr true
+      :doc "Based on Craig Andera's gen-html-docs. This version Generates a 
+an HTML page per namespace.  
+
+THE PLAN:
+  Have a flag that generates only CLR specific documentation that uses either
+the path or the meta key :clr to indicate what should have docs generated for it."}
+ 
+  clojure.contrib.gen-html-docs
   (:use [clojure.contrib repl-utils prxml string])
   (require [clojure.core])
   (require [clojure.string :as s]))  
@@ -31,8 +40,9 @@
 
 (defn- is-clr-function
   [v]
-  (and (not (nil? (:file (meta v))))
-          (not (nil? (re-matches #".*clr.*" (:file (meta v)))))))
+  (or (and (not (nil? (:file (meta v))))
+       (not (nil? (re-matches #".*clr.*" (:file (meta v))))))
+      (= (:clr (meta v)) true)))
 
 (defn- anchor-for-member 
   "Returns a suitable HTML anchor name given a library id and a member
@@ -243,7 +253,14 @@ lib, a symbol identifying that namespace."
        ]
       ]]])
 
+(defn- get-ns-meta
+  [lib]
+  (meta (find-ns lib)))
+
+
 (defn generate-documentation 
+  "Generates a single HMTL page for the provided namespace"
+  #^{:clr true}
   [libs all-libs]
   (dorun (map load-lib libs))
   (load-lib libs)
@@ -257,7 +274,7 @@ lib, a symbol identifying that namespace."
                     [:div {:id "AllContentContainer"}
                      [:div {:id "Header"}
                        [:a {:id "Logo" :href "index.html"}
-                         [:img {:alt "Clojure" :height "100" :width "100" :src "http://richhickey.github.com/clojure-contrib/static/clojure-icon.gif"}]]
+                         [:img {:alt "Clojure-clr" :height "100" :width "100" :src "http://richhickey.github.com/clojure-contrib/static/clojure-icon.gif"}]]
                        [:h1 
                          [:a {:title "page header title" :id "page-header" :href "index.html"} "Clojure-clr API Reference"]]
                      ]
@@ -271,33 +288,24 @@ lib, a symbol identifying that namespace."
                                [:div {:id "right-sidebar"}
                                  [:div {:id "toc"}
                                    [:h1 {:class "nopad"} "Table of Contents"]
-                                   [:div {:style "margin-left: 1em;" :class "toc-section"}
+                                    [:div {:style "margin-left: 1em;" :class "toc-section"}
                                      [:a {:href "#toc0"} "Overview"]
                                      (generate-lib-links lib-vec) 
                                 ]]]
-                                ;;; ----------------------------------------------
-                                ;;; some variation of the line: (meta (first (all-ns)))
-                                ;;; should get me the info I'm after
-                                ;;; ----------------------------------------------
+                                                               
                                 [:div {:id "content-tag"}
                                   [:h1 {:id "overview"} "API for "
-                                     [:span {:id "namespace-name"} "Namespace name here"]
-                                     [:span {:id "branch-name"} "(Branch name)"]]
-                                  "by "
-                                  [:span {:id "author"} "Author Name Here"]
-                                  [:br]
-                                  [:br]
-                                  "Usage: 
-                                  "
-                                  [:pre 
-                                    "(ns your-namespace
-                                     (:require "
-                                    [:span {:id "long-name"} "namespace name here"]
-                                    "))
-                                    "]
-                                   [:pre]
+                                     [:span {:id "namespace-name"} (name (first libs)) " - Clojure-clr v" (:major *clojure-version*) "." (:minor *clojure-version*) (:qualifier *clojure-version*)]]
+                                  (if (not (nil? (:author (get-ns-meta (first libs))))) 
+                                      [:span {:id "author"} "by " (:author (get-ns-meta (first libs)))])
+                                  
+                                  [:H4 {:style "margin-top: 1em;"} "Usage: "] 
+                                  
+                                   [:pre
+"(ns your-namespace
+   (:require " (name (first libs)) "))"]
                                    [:h2 "Overview"]
-                                   [:pre {:id "namespace-docstr"} "Namespace doc string goes here" ]
+                                   [:pre {:id "namespace-docstr"} (:doc (get-ns-meta (first libs)))]
 				   [:br]
 				   [:h2 "Public Variables and Functions"]
                                    (map generate-lib-doc lib-vec)
