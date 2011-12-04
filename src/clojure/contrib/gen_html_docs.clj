@@ -10,6 +10,7 @@ the path or the meta key :clr to indicate what should have docs generated for it
   clojure.contrib.gen-html-docs
   (:use [clojure.contrib repl-utils prxml string])
   (require [clojure.core])
+  (require [clojure.repl :as repl])
   (require [clojure.string :as s]))  
 
 (defn- extract-documentation 
@@ -38,11 +39,11 @@ the path or the meta key :clr to indicate what should have docs generated for it
    (catch Exception e
      :unknown)))
 
-(defn- is-clr-function
-  [v]
-  (or (and (not (nil? (:file (meta v))))
-       (not (nil? (re-matches #".*clr.*" (:file (meta v))))))
-      (= (:clr (meta v)) true)))
+;; (defn- is-clr-function
+;;  [v]
+;;  (or (and (not (nil? (:file (meta v))))
+;;       (not (nil? (re-matches #".*clr.*" (:file (meta v))))))
+;;      (= (:clr (meta v)) true)))
 
 (defn- anchor-for-member 
   "Returns a suitable HTML anchor name given a library id and a member
@@ -50,53 +51,49 @@ the path or the meta key :clr to indicate what should have docs generated for it
   [libid memberid]
   (str libid "/" memberid))
 
-(defn- anchor-for-library 
-  "Given a symbol id identifying a namespace, returns an identifier
-suitable for use as the name attribute of an HTML anchor tag."
-  [id]
-  (str "library-" id))
+;; KEEP THESE TWO FUNCTIONS UNTIL I HAVE THE SOURCE LINK WORKING I
+;; MAY USE THEM THEN
+;; (defn- id-for-member-source 
+;;  "Returns a suitable HTML id for a source listing given a library and
+;;  a member"
+;;  [libid memberid]
+;;  (str "membersource-" libid "-" memberid))
 
-(defn- id-for-member-source 
-  "Returns a suitable HTML id for a source listing given a library and
-  a member"
-  [libid memberid]
-  (str "membersource-" libid "-" memberid))
+;;(defn- id-for-member-source-link 
+;;  "Returns a suitable HTML id for a link to a source listing given a
+;;  library and a member"
+;;  [libid memberid]
+;;  (str "linkto-membersource-" libid "-" memberid))
 
-(defn- id-for-member-source-link 
-  "Returns a suitable HTML id for a link to a source listing given a
-  library and a member"
-  [libid memberid]
-  (str "linkto-membersource-" libid "-" memberid))
-
-(defn- symbol-for 
+ (defn- symbol-for 
   "Given a namespace object ns and a namespaceless symbol memberid
   naming a member of that namespace, returns a namespaced symbol that
   identifies that member."
   [ns memberid]
   (symbol (name (ns-name ns)) (name memberid)))
 
-(defn- elide-to-one-line 
-  "Elides a string down to one line."
-  [s]
-  (clojure.contrib.string/replace-re #"(\n.*)+" "..." s))
+;; (defn- elide-to-one-line 
+;;  "Elides a string down to one line."
+;;  [s]
+;;  (clojure.contrib.string/replace-re #"(\n.*)+" "..." s))
 
-(defn- elide-string 
-  "Returns a string that is at most the first limit characters of s"
-  [s limit]
-  (if (< (- limit 3) (count s))
-    (str (subs s 0 (- limit 3)) "...")
-    s))
+;; (defn- elide-string 
+;;  "Returns a string that is at most the first limit characters of s"
+;;  [s limit]
+;;  (if (< (- limit 3) (count s))
+;;    (str (subs s 0 (- limit 3)) "...")
+;;    s))
 
-(defn- doc-elided-src 
-  "Returns the src with the docs elided."
-  [docs src]
-  (clojure.contrib.string/replace-re (re-pattern (str "\"" docs "\"")) 
-	  (str "\""
-		  (elide-to-one-line docs)
-;; 	          (elide-string docs 10)
-;;	          "..."
-		  "\"")
-	  src))
+;;(defn- doc-elided-src 
+;;  "Returns the src with the docs elided."
+;;  [docs src]
+;;  (clojure.contrib.string/replace-re (re-pattern (str "\"" docs "\"")) 
+;;	  (str "\""
+;;		  (elide-to-one-line docs)
+;;;; 	          (elide-string docs 10)
+;;;;	          "..."
+;;		  "\"")
+;;	  src))
 
 (defn- anchor-for-library-contents 
   "Returns an HTML ID that identifies the element that holds the
@@ -110,24 +107,24 @@ visibility of the library contents."
   [lib]
   (str "library-contents-toggle-" lib))
 
-(defn- format-source [libid memberid v]
-  (try
-   (let [docs (:doc (meta v)) 
-	 src (if-let [ns (find-ns libid)]
-	       (get-source (symbol-for ns memberid)))]
-     (if (and src docs)
-       (doc-elided-src docs src)
-       src))
-   (catch Exception ex
-     nil)))
+;; (defn- format-source [libid memberid v]
+;;  (try
+;;   (let [docs (:doc (meta v)) 
+;;	 src (if-let [ns (find-ns libid)]
+;;	       (get-source (symbol-for ns memberid)))]
+;;     (if (and src docs)
+;;       (doc-elided-src docs src)
+;;       src))
+;;   (catch Exception ex
+;;     nil)))
 
-(defn- is-clr-function
-  [v]
-  (and (not (nil? (:file (meta v))))
-          (not (nil? (re-matches #".*clr.*" (:file (meta v)))))))
+;; (defn- is-clr-function
+;;  [v]
+;;  (and (not (nil? (:file (meta v))))
+;;          (not (nil? (re-matches #".*clr.*" (:file (meta v)))))))
 
 (defn- generate-lib-member [libid [n v]]
- (if (is-clr-function v)
+ ;;(if (is-clr-function v)
   [:div {:id "var-entry"}
    [:br][:hr]
    [:h2 {:id (anchor-for-member libid n)} (str n)]
@@ -135,7 +132,7 @@ visibility of the library contents."
    [:pre {:id "var-usage"} (str (:arglists (meta v)))]
    [:pre {:id "var-docstr"} (extract-documentation v)]
    [:em "Need to figure out how to do the link to the source"]
-  ]))
+  ]);;)
 
 (defn- generate-lib-member-link 
   "Emits a hyperlink to a member of a namespace given libid (a symbol
@@ -157,7 +154,7 @@ symbol lib."
                  (map #(generate-lib-member lib %) lib-members)));;])
 )))
 
-(defn load-lib
+(defn- load-lib
   [lib]
   (try 
     (require lib)
@@ -173,10 +170,7 @@ symbol lib."
 lib, a symbol identifying that namespace."
   [lib]
    (let [lib-members (sort (ns-publics lib))]
-    (map #(if (is-clr-function (val %)) 
-             (generate-function-link lib (key %))) lib-members)))
-    ;;  (map #(generate-lib-member lib %) lib-members)));;])
-    ;; (map #(generate-function-link lib (key %)) (sort (ns-publics lib))))
+    (map #(generate-function-link lib (key %)) lib-members)))
 
 (defn- generate-lib-links 
   "Generates the list of hyperlinks to each namespace, given libs, a
@@ -196,21 +190,20 @@ lib, a symbol identifying that namespace."
   [lib]
   (str "library-contents-toggle-" lib))
 
+;; (defn generate-toggle-namespace-script 
+;;  [action toggle-text lib]
+;;  (str (format "%s('%s');\n" action (anchor-for-library-contents lib))
+;;       (format "setLinkToggleText('%s', '%s');\n" (anchor-for-library-contents-toggle lib) toggle-text)))
 
-(defn generate-toggle-namespace-script 
-  [action toggle-text lib]
-  (str (format "%s('%s');\n" action (anchor-for-library-contents lib))
-       (format "setLinkToggleText('%s', '%s');\n" (anchor-for-library-contents-toggle lib) toggle-text)))
-
-(defn generate-all-namespaces-action-script 
-  [action toggle-text libs]
-  (str (format  "function %sAllNamespaces()" action)
-       \newline
-       "{"
-       \newline
-       (reduce str (map #(generate-toggle-namespace-script action toggle-text %) libs))
-       \newline
-       "}"))
+;;(defn generate-all-namespaces-action-script 
+;;  [action toggle-text libs]
+;;  (str (format  "function %sAllNamespaces()" action)
+;;       \newline
+;;       "{"
+;;       \newline
+;;       (reduce str (map #(generate-toggle-namespace-script action toggle-text %) libs))
+;;       \newline
+;;       "}"))
 
 (defn- get-version-number
  []
@@ -225,6 +218,10 @@ lib, a symbol identifying that namespace."
            [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/wiki.css" :rel "stylesheet"}]
 	   [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/internal.css" :rel "stylesheet"}]
            ])
+
+(defn- get-fn-src
+  [func]
+  (clojure.repl/source func))
 
 (defn- get-ns-link
   [nspace]
@@ -247,7 +244,7 @@ lib, a symbol identifying that namespace."
        [:div {:class "NamespaceTOC"}
          [:span {:class "toc-header"} "Namespaces" ]
          [:ul {:id "left-sidebar-list"}
-           ;;[:li [:a {:href "namespace.html" :class "wiki_link"} (name (first all-libs))]]
+         
            (map get-ns-link all-libs)
          ]
        ]
@@ -257,6 +254,19 @@ lib, a symbol identifying that namespace."
   [lib]
   (meta (find-ns lib)))
 
+(defn- page-header
+  []
+  [:div {:id "Header"}
+   [:a {:id "Logo" :href "index.html"}
+     [:img {:alt "Clojure-clr" :height "100" :width "100" :src "http://richhickey.github.com/clojure-contrib/static/clojure-icon.gif"}]]
+   [:h1 
+     [:a {:title "page header title" :id "page-header" :href "index.html"} "Clojure-clr API Reference"]]
+   ])
+
+(defn get-body-heading
+  [lib-name]
+ [:h1 {:id "overview"} "API for "
+     [:span {:id "namespace-name"} lib-name " - Clojure-clr v" (:major *clojure-version*) "." (:minor *clojure-version*) (:qualifier *clojure-version*)]])
 
 (defn generate-documentation 
   "Generates a single HMTL page for the provided namespace"
@@ -272,12 +282,7 @@ lib, a symbol identifying that namespace."
           (let [lib-vec (sort libs)]
             [:body
                     [:div {:id "AllContentContainer"}
-                     [:div {:id "Header"}
-                       [:a {:id "Logo" :href "index.html"}
-                         [:img {:alt "Clojure-clr" :height "100" :width "100" :src "http://richhickey.github.com/clojure-contrib/static/clojure-icon.gif"}]]
-                       [:h1 
-                         [:a {:title "page header title" :id "page-header" :href "index.html"} "Clojure-clr API Reference"]]
-                     ]
+                     (page-header)
                      (left-nav all-libs)
                      ]
                      [:div {:id "rightcolumn"}
@@ -315,15 +320,61 @@ lib, a symbol identifying that namespace."
         ]))
     (.ToString writer)))
 
+(defn generate-index-file
+  [libs]
+  (let [writer (new System.IO.StringWriter)]
+    (binding [*out* writer]
+      (prxml
+        [:html {:xmlns "http://www.w3.org/1999/xhtml"}
+          (html-header libs)
+           (let [lib-vec (sort libs)]
+            [:body
+              [:div {:id "AllContentContainer"}
+                (page-header)
+                (left-nav libs)
+              ]
+              [:div {:id "rightcolumn"}
+                [:div {:id "Content"}
+                  [:div {:class "contentBox"}
+                    [:div {:class "innerContentBox"}
+                      [:div {:id "content_view" :class "wiki wikiPage"}
+                        [:div {:id "right-sidebar"}
+                          [:div {:id "toc"}
+                            [:h1 {:class "nopad"} "Table of Contents"]
+                             [:div {:style "margin-left: 1em;" :class "toc-section"}
+                               (map #(prxml [:div {:class "toc-section" } [:a {:href (str "#" (name %))} (name %)]]) libs)]
+                               ;;(map get-ns-link libs)]
+                             ]]
+                      [:div {:id "content-tag"}
+                        [:h1 {:id "overview"} "API for "
+                          [:span {:id "namespace-name"} (name (first libs)) " - Clojure-clr v" (:major *clojure-version*) "." (:minor *clojure-version*) (:qualifier *clojure-version*)]]
+			 
+                ]]]]]]])])
+   (.ToString writer))))
+    
+
 (defn generate-documentation-to-file
   [path libs all-libs]
-  (if (System.IO.File/Exists path)
+   (if (System.IO.File/Exists path)
      (System.IO.File/Delete path))
-  (spit path (generate-documentation libs all-libs)))
-
+       (spit path (generate-documentation libs all-libs)))
 
 (defn generate-documentation-to-files
   [base-path libs]
   (if (not (System.IO.Directory/Exists base-path))
       (System.IO.Directory/CreateDirectory base-path))
-  (map #(generate-documentation-to-file (str base-path "\\" % ".html") [%] libs) libs))
+
+  (map #(generate-documentation-to-file (str base-path "\\" % ".html") [%] libs) libs)
+  (spit (str base-path "\\index.html")  (generate-index-file libs)))
+
+(defn generate-clr-docs
+  [base-path]
+  (generate-documentation-to-files base-path 
+           ['clojure.clr.io
+            'clojure.clr.shell
+            'clojure.contrib.gen-html-docs
+            'clojure.core
+            'clojure.pprint
+            'clojure.reflect
+            'clojure.string
+            'clojure.test-helper]))
