@@ -348,7 +348,26 @@ lib, a symbol identifying that namespace."
                       [:div {:id "content-tag"}
                         [:h1 {:id "overview"} "API for "
                           [:span {:id "namespace-name"} (name (first libs)) " - Clojure-clr v" (:major *clojure-version*) "." (:minor *clojure-version*) (:qualifier *clojure-version*)]]
-			 
+			[:br]
+                        [:div {:id "project-description"}
+                          [:h3 "Important Clojure-clr resources"]
+                          [:ul 
+			    [:li "The official source code for Clojure-clr is on the "
+                              [:a {:href "http://github.com/richhickey/clojure-clr"} "Clojure-clr GitHub source page"]]
+                            [:li "Discussions among clojure developers take place in the "
+                              [:a {:href "http://groups.google.com/group/clojure-dev"} "Clojure Dev Google group"]]
+                            [:li "Issue tracking happens on the "
+                              [:a {:href "https://github.com/richhickey/clojure-clr/issues"} "GitHub Project's Issues page"]]
+                            [:li "This documentation is maintained in the gh-pages branch of clojure on GitHub and is always available online"
+                              [:a {:href "http://rippinrobr.github.com/gen_html_docs/"} "at the Clojure-clr GitHub pages"]
+                              "If you wish to have a version for off-line use you can use the download button on the "
+                              [:a {:href "https://github.com/rippinrobr/gen_html_docs/tree/gh-pages"} "gh-pages branch page of GitHub"]]
+                          ]]
+                        [:br]
+                        [:div {:id "namespace-entry"}
+                          [:br]
+                          [:hr]  
+                        ]
                 ]]]]]]])])
    (.ToString writer))))
     
