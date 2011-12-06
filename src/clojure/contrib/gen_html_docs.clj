@@ -263,10 +263,22 @@ lib, a symbol identifying that namespace."
      [:a {:title "page header title" :id "page-header" :href "index.html"} "Clojure-clr API Reference"]]
    ])
 
-(defn get-body-heading
+(defn- get-body-heading
   [lib-name]
  [:h1 {:id "overview"} "API for "
      [:span {:id "namespace-name"} lib-name " - Clojure-clr v" (:major *clojure-version*) "." (:minor *clojure-version*) (:qualifier *clojure-version*)]])
+
+(defn create-index-ns-funcs-listing
+  [lib-name]
+  [:div {:id "namespace-entry"}
+    [:br][:hr]
+    [:h2 (name lib-name)]
+    [:a {:href (str (name lib-name) ".html")} "Detailed API documentation"]
+    [:br]
+    [:pre {:id "namespace-docstr"} (:doc (meta (find-ns lib-name)))]
+    "Public variables and functions: "
+    (map #(prxml [:span {:id "var-link"} [:a {:href (str (name lib-name) ".html#" (name lib-name) "/" (first %))} (str (first %))]] "  ") (ns-publics lib-name))
+    ])
 
 (defn generate-documentation 
   "Generates a single HMTL page for the provided namespace"
@@ -364,10 +376,11 @@ lib, a symbol identifying that namespace."
                               [:a {:href "https://github.com/rippinrobr/gen_html_docs/tree/gh-pages"} "gh-pages branch page of GitHub"]]
                           ]]
                         [:br]
-                        [:div {:id "namespace-entry"}
-                          [:br]
-                          [:hr]  
-                        ]
+                        (map create-index-ns-funcs-listing libs)
+                        ;; [:div {:id "namespace-entry"}
+                        ;;  [:br]
+                        ;;  [:hr]  
+                        ;;]
                 ]]]]]]])])
    (.ToString writer))))
     
