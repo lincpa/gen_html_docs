@@ -287,8 +287,11 @@ lib, a symbol identifying that namespace."
 (defn gen-api-index
   [libs]
   (let [sorted-funcs (into (sorted-map) (doall (flatten (map ns-publics libs))))
-        ]
-     sorted-funcs))
+        regexes [#"^[aA].*" #"^[bB].*" #"^[cC].*" #"^[dD].*" #"^[eE].*" #"^[fF].*" #"^[gG].*" #"^[hH].*" #"^[iI].*" #"^[jJ].*" #"^[kK].*"                  #"^[lL].*" #"^[mM].*" #"^[nN].*" #"^[pP].*" #"^[qQ].*" #"^[rR].*" #"^[sS].*" #"^[tT].*" #"^[uU].*" #"^[vV].*" #"^[wW].*"
+                 #"^[xX].*" #"^[yY].*" #"^[zZ].* #^[^a-zA-Z].*"]]
+     ;; put the page header here
+     ;; the map will be used to create the function listing by alpha
+     (map #(get-funcs-by-regex % sorted-funcs) regexes)))
 
 (defn generate-documentation 
   "Generates a single HMTL page for the provided namespace"
