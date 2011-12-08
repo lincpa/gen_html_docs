@@ -280,6 +280,16 @@ lib, a symbol identifying that namespace."
     (map #(prxml [:span {:id "var-link"} [:a {:href (str (name lib-name) ".html#" (name lib-name) "/" (first %))} (str (first %))]] "  ") (ns-publics lib-name))
     ])
 
+(defn get-funcs-by-regex
+  [regex sorted-funcs]
+   (filter #(re-matches regex (str (key %))) sorted-funcs))
+
+(defn gen-api-index
+  [libs]
+  (let [sorted-funcs (into (sorted-map) (doall (flatten (map ns-publics libs))))
+        ]
+     sorted-funcs))
+
 (defn generate-documentation 
   "Generates a single HMTL page for the provided namespace"
   #^{:clr true}
