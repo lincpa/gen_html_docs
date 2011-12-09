@@ -284,14 +284,60 @@ lib, a symbol identifying that namespace."
   [regex sorted-funcs]
    (filter #(re-matches regex (str (key %))) sorted-funcs))
 
+(defn create-api-func-desc
+  [funcs]
+  
+  [:div {:id "index-body"} 
+   [:h2 {:id (first (.ToUpper (str (ffirst funcs))))}
+    (first (.ToUpper (str (ffirst funcs))))]
+   [:pre
+    (let [split-res (clojure.string/split (apply str (replace {\# "" \' ""} (str (second (first funcs))))) #"/")]
+     [:span {:id "section-content"}
+      [:a {:href (str (first split-res) ".html#" (first split-res) "/" (second split-res))} (second split-res)]])
+   ]])
+
 (defn gen-api-index
   [libs]
   (let [sorted-funcs (into (sorted-map) (doall (flatten (map ns-publics libs))))
-        regexes [#"^[aA].*" #"^[bB].*" #"^[cC].*" #"^[dD].*" #"^[eE].*" #"^[fF].*" #"^[gG].*" #"^[hH].*" #"^[iI].*" #"^[jJ].*" #"^[kK].*"                  #"^[lL].*" #"^[mM].*" #"^[nN].*" #"^[pP].*" #"^[qQ].*" #"^[rR].*" #"^[sS].*" #"^[tT].*" #"^[uU].*" #"^[vV].*" #"^[wW].*"
-                 #"^[xX].*" #"^[yY].*" #"^[zZ].* #^[^a-zA-Z].*"]]
+        regexes [#"^[aA].*" #"^[bB].*" #"^\W*[cC].*" #"^[dD].*" #"^[eE].*" #"^[fF].*" #"^[gG].*" #"^[hH].*" #"^[iI].*" #"^[jJ].*" #"^[kK].*"                  #"^[lL].*" #"^[mM].*" #"^[nN].*" #"^[pP].*" #"^[qQ].*" #"^[rR].*" #"^[sS].*" #"^[tT].*" #"^[uU].*" #"^[vV].*" #"^[wW].*"
+                 #"^[xX].*" #"^[yY].*" #"^[zZ].* #^[^a-zA-Z].*"]
      ;; put the page header here
-     ;; the map will be used to create the function listing by alpha
-     (map #(get-funcs-by-regex % sorted-funcs) regexes)))
+        writer (new System.IO.StringWriter)]
+     (binding [*out* writer]
+      (prxml 
+       [:html {:xmlns "http://www.w3.org/1999/xhtml"}
+        (html-header libs)
+        [:style ".shortcuts a { margin-right: .5em; }"]
+        [:body
+          [:div {:id "AllContentContainer"}
+                     (page-header)
+                     (left-nav libs)
+          ]
+          [:div {:id "rightcolumn"}
+                       [:div {:id "Content"}
+                         [:div {:class "contentBox"}
+                           [:div {:class "innerContentBox"}
+                             [:div {:id "content_view" :class "wiki wikiPage"}
+                               [:div {:id "right-sidebar"}]
+                               [:div {:id "content-tag"}
+                                [:h1 {:Id "overview"} (str "Index of Public Functions and Variables - Clojure-clr v" (get-version-number))]
+                                [:p "This page has an alphabetical index of all the documented functions and variables in Clojure.
+Shortcuts"]
+			        [:div {:class "shortcuts"} "Shortcuts: "
+                                  [:br]
+                                   [:a {:href "#A"} "A"][:a {:href "#B"} "B"][:a {:href "#C"} "C"][:a {:href "#D"} "D"]
+                                   [:a {:href "#E"} "E"][:a {:href "#F"} "F"][:a {:href "#G"} "G"][:a {:href "#H"} "H"]
+                                   [:a {:href "#I"} "I"][:a {:href "#J"} "J"][:a {:href "#K"} "K"][:a {:href "#L"} "L"]
+                                   [:a {:href "#M"} "M"][:a {:href "#N"} "N"][:a {:href "#O"} "O"][:a {:href "#P"} "P"]
+                                   [:a {:href "#Q"} "Q"][:a {:href "#R"} "R"][:a {:href "#S"} "S"][:a {:href "#T"} "T"]
+                                   [:a {:href "#U"} "U"][:a {:href "#V"} "V"][:a {:href "#W"} "W"][:a {:href "#X"} "X"]
+				   [:a {:href "#Y"} "Y"][:a {:href "#Z"} "Z"][:a {:href "#other"} "Other"]]
+                                
+                               (map #(create-api-func-desc (get-funcs-by-regex % sorted-funcs)) regexes)
+                             ]]]]]]
+        ]
+       ])
+      (.ToString writer))))
 
 (defn generate-documentation 
   "Generates a single HMTL page for the provided namespace"
