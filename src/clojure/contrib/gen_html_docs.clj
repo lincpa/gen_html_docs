@@ -26,7 +26,7 @@ the path or the meta key :clr to indicate what should have docs generated for it
      (s/split docs #"\n")) 
     ""))
 
-(defn- member-type 
+(defn member-type 
   "Figures out for a var x whether it's a macro, function, var or multifunction"
   [x]
   (try 
@@ -72,28 +72,28 @@ the path or the meta key :clr to indicate what should have docs generated for it
   [ns memberid]
   (symbol (name (ns-name ns)) (name memberid)))
 
-;; (defn- elide-to-one-line 
-;;  "Elides a string down to one line."
-;;  [s]
-;;  (clojure.contrib.string/replace-re #"(\n.*)+" "..." s))
+ (defn- elide-to-one-line 
+  "Elides a string down to one line."
+  [s]
+  (clojure.contrib.string/replace-re #"(\n.*)+" "..." s))
 
-;; (defn- elide-string 
-;;  "Returns a string that is at most the first limit characters of s"
-;;  [s limit]
-;;  (if (< (- limit 3) (count s))
-;;    (str (subs s 0 (- limit 3)) "...")
-;;    s))
+ (defn- elide-string 
+  "Returns a string that is at most the first limit characters of s"
+  [s limit]
+  (if (< (- limit 3) (count s))
+    (str (subs s 0 (- limit 3)) "...")
+    s))
 
-;;(defn- doc-elided-src 
-;;  "Returns the src with the docs elided."
-;;  [docs src]
-;;  (clojure.contrib.string/replace-re (re-pattern (str "\"" docs "\"")) 
-;;	  (str "\""
-;;		  (elide-to-one-line docs)
-;;;; 	          (elide-string docs 10)
-;;;;	          "..."
-;;		  "\"")
-;;	  src))
+(defn- doc-elided-src 
+  "Returns the src with the docs elided."
+  [docs src]
+  (clojure.contrib.string/replace-re (re-pattern (str "\"" docs "\"")) 
+	  (str "\""
+		  (elide-to-one-line docs)
+ 	          (elide-string docs 10)
+	          "..."
+		  "\"")
+	  src))
 
 (defn- anchor-for-library-contents 
   "Returns an HTML ID that identifies the element that holds the
@@ -268,7 +268,7 @@ lib, a symbol identifying that namespace."
  [:h1 {:id "overview"} "API for "
      [:span {:id "namespace-name"} lib-name " - Clojure-clr v" (:major *clojure-version*) "." (:minor *clojure-version*) (:qualifier *clojure-version*)]])
 
-(defn create-index-ns-funcs-listing
+(defn- create-index-ns-funcs-listing
   [lib-name]
   [:div {:id "namespace-entry"}
     [:br][:hr]
@@ -280,20 +280,33 @@ lib, a symbol identifying that namespace."
     (map #(prxml [:span {:id "var-link"} [:a {:href (str (name lib-name) ".html#" (name lib-name) "/" (first %))} (str (first %))]] "  ") (ns-publics lib-name))
     ])
 
-(defn get-funcs-by-regex
+(defn- get-funcs-by-regex
   [regex sorted-funcs]
    (filter #(re-matches regex (str (key %))) sorted-funcs))
+
+(defn create-api-func-row
+ [func]
+ 
+ (let [split-res (clojure.string/split (apply str (replace {\# "" \'""} (str (second func)))) #"/")]
+   [:tr {:name (second func)}
+      [:td {:id "section-content"}
+        [:a {:href (str (first split-res) ".html#" (first split-res) "/" (second split-res))} (second split-res)]]
+      [:td (str "    " (name (member-type (second func))))]
+      [:td (str (:ns (meta (second func))))]
+      [:td (elide-string (:doc (meta (second func))) 50)]
+   ]
+  ))
 
 (defn create-api-func-desc
   [funcs]
   
   [:div {:id "index-body"} 
-   [:h2 {:id (first (.ToUpper (str (ffirst funcs))))}
-    (first (.ToUpper (str (ffirst funcs))))]
-   [:pre
-    (let [split-res (clojure.string/split (apply str (replace {\# "" \' ""} (str (second (first funcs))))) #"/")]
-     [:span {:id "section-content"}
-      [:a {:href (str (first split-res) ".html#" (first split-res) "/" (second split-res))} (second split-res)]])
+   [:table 
+    [:thead
+      [:tr
+        [:th {:colspan "3" :id (first (.ToUpper (str (ffirst funcs))))} 
+            (first (.ToUpper (str (ffirst funcs))))]]]
+    (map create-api-func-row funcs)
    ]])
 
 (defn gen-api-index
@@ -444,22 +457,26 @@ Shortcuts"]
    (.ToString writer))))
     
 
-(defn generate-documentation-to-file
+(defn- generate-documentation-to-file
   [path libs all-libs]
-   (if (System.IO.File/Exists path)
-     (System.IO.File/Delete path))
+     ;; (if (System.IO.File/Exists path)
+  ;;   (System.IO.File/Delete path))
        (spit path (generate-documentation libs all-libs)))
 
 (defn generate-documentation-to-files
   [base-path libs]
+  
   (if (not (System.IO.Directory/Exists base-path))
       (System.IO.Directory/CreateDirectory base-path))
-
+   
   (map #(generate-documentation-to-file (str base-path "\\" % ".html") [%] libs) libs)
-  (spit (str base-path "\\index.html")  (generate-index-file libs)))
+  (spit (str base-path "\\index.html")  (generate-index-file libs))
+  (spit (str base-path "\\api-index.html")  (gen-api-index libs))
+  )
 
 (defn generate-clr-docs
   [base-path]
+  (spit "c:\\temp\\docs\\generate-clr-docs.txt" "hi")
   (generate-documentation-to-files base-path 
            ['clojure.clr.io
             'clojure.clr.shell
