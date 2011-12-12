@@ -1,1 +1,4 @@
+td { padding-right: 20px; padding-bottom: 5px;}
+.wiki td { border: 0px;}
+  
 #header h1 {background: transparent url(clojure-clr.png) no-repeat 16px 36px; width: 320px;}
