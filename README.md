@@ -6,11 +6,11 @@ My plan is to get the CLR version as possible to the original version.
 ## TODO
 In no real order
 
-* Generate an index page
-* Generate an overview page
 * Link to the code for the function
-* A better way to construct the Namespace TOC on the left of the page. 
 
 ## Completed
+* A better way to construct the Namespace TOC on the left of the page. 
+* Generate an overview page
+* Generate an index page
 * compiled a list of all namespaces that use anything from System.*
 * Grab the namespace metadata and display the documentation like the function/var docs. 
