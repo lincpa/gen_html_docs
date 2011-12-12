@@ -111,9 +111,9 @@ the path or the meta key :clr to indicate what should have docs generated for it
   (str (:major *clojure-version*) "." (:minor *clojure-version*)))
 
 (defn- html-header
-  [lib]
+  [lib title]
     [:head
-           [:title (str (ns-name (first lib)) " - Clojure-clr v" (get-version-number) " API Documentation")]
+           [:title (str title  " - Clojure-clr v" (get-version-number) " API Documentation")] ;;(str (ns-name (first lib)) " - Clojure-clr v" (get-version-number) " API Documentation")]
            [:link {:href "http://clojure.github.com/clojure/static/favicon.png" :rel "shortcut icon"}]
            [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/clojure.css" :rel "stylesheet"}]
            [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/wiki.css" :rel "stylesheet"}]
@@ -217,7 +217,7 @@ the path or the meta key :clr to indicate what should have docs generated for it
      (binding [*out* writer]
       (prxml 
        [:html {:xmlns "http://www.w3.org/1999/xhtml"}
-        (html-header libs)
+        (html-header libs "API Index ")
         [:style ".shortcuts a { margin-right: .5em; }"]
         [:body
           [:div {:id "AllContentContainer"}
@@ -260,7 +260,7 @@ Shortcuts"]
     (binding [*out* writer]
       (prxml
         [:html {:xmlns "http://www.w3.org/1999/xhtml"}
-          (html-header libs)
+          (html-header libs (ns-name (first libs)))
           (let [lib-vec (sort libs)]
             [:body
                     [:div {:id "AllContentContainer"}
@@ -309,7 +309,7 @@ Shortcuts"]
     (binding [*out* writer]
       (prxml
         [:html {:xmlns "http://www.w3.org/1999/xhtml"}
-          (html-header libs)
+          (html-header libs "Overview ")
            (let [lib-vec (sort libs)]
             [:body
               [:div {:id "AllContentContainer"}
@@ -379,7 +379,7 @@ prior to calling this function so I could create the HTML pages"
   (generate-documentation-to-files base-path 
            ['clojure.clr.io
             'clojure.clr.shell
-            'clojure.contrib.gen-html-docs
+           ;; 'clojure.contrib.gen-html-docs
             'clojure.core
             'clojure.pprint
             'clojure.reflect
