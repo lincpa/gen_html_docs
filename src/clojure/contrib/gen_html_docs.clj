@@ -165,7 +165,7 @@ the path or the meta key :clr to indicate what should have docs generated for it
   [lib-name]
   [:div {:id "namespace-entry"}
     [:br][:hr]
-    [:h2 (name lib-name)]
+    [:h2 {:id (name lib-name)} (name lib-name)]
     [:a {:href (str (name lib-name) ".html")} "Detailed API documentation"]
     [:br]
     [:pre {:id "namespace-docstr"} (:doc (meta (find-ns lib-name)))]
