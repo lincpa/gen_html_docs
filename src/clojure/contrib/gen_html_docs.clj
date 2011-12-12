@@ -202,7 +202,7 @@ lib, a symbol identifying that namespace."
            [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/clojure.css" :rel "stylesheet"}]
            [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/wiki.css" :rel "stylesheet"}]
 	   [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/internal.css" :rel "stylesheet"}]
-           [:link {:media "all" :type "text/css" :href "/css/clr.css" :rel "stylesheet"}]
+           [:link {:media "all" :type "text/css" :href "clr.css" :rel "stylesheet"}]
            ])
 
 (defn- get-fn-src
