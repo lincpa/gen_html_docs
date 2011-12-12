@@ -190,21 +190,6 @@ lib, a symbol identifying that namespace."
   [lib]
   (str "library-contents-toggle-" lib))
 
-;; (defn generate-toggle-namespace-script 
-;;  [action toggle-text lib]
-;;  (str (format "%s('%s');\n" action (anchor-for-library-contents lib))
-;;       (format "setLinkToggleText('%s', '%s');\n" (anchor-for-library-contents-toggle lib) toggle-text)))
-
-;;(defn generate-all-namespaces-action-script 
-;;  [action toggle-text libs]
-;;  (str (format  "function %sAllNamespaces()" action)
-;;       \newline
-;;       "{"
-;;       \newline
-;;       (reduce str (map #(generate-toggle-namespace-script action toggle-text %) libs))
-;;       \newline
-;;       "}"))
-
 (defn- get-version-number
  []
   (str (:major *clojure-version*) "." (:minor *clojure-version*)))
@@ -217,6 +202,7 @@ lib, a symbol identifying that namespace."
            [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/clojure.css" :rel "stylesheet"}]
            [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/wiki.css" :rel "stylesheet"}]
 	   [:link {:media "all" :type "text/css" :href "http://clojure.github.com/clojure/static/internal.css" :rel "stylesheet"}]
+           [:link {:media "all" :type "text/css" :href "/css/clr.css"}]
            ])
 
 (defn- get-fn-src
@@ -449,19 +435,15 @@ Shortcuts"]
                           ]]
                         [:br]
                         (map create-index-ns-funcs-listing libs)
-                        ;; [:div {:id "namespace-entry"}
-                        ;;  [:br]
-                        ;;  [:hr]  
-                        ;;]
-                ]]]]]]])])
+                  ]]]]]]])])
    (.ToString writer))))
     
 
 (defn- generate-documentation-to-file
   [path libs all-libs]
-     ;; (if (System.IO.File/Exists path)
-  ;;   (System.IO.File/Delete path))
-       (spit path (generate-documentation libs all-libs)))
+   (if (System.IO.File/Exists path)
+    (System.IO.File/Delete path))
+   (spit path (generate-documentation libs all-libs)))
 
 (defn generate-documentation-to-files
   [base-path libs]
@@ -469,14 +451,14 @@ Shortcuts"]
   (if (not (System.IO.Directory/Exists base-path))
       (System.IO.Directory/CreateDirectory base-path))
    
-  (map #(generate-documentation-to-file (str base-path "\\" % ".html") [%] libs) libs)
   (spit (str base-path "\\index.html")  (generate-index-file libs))
   (spit (str base-path "\\api-index.html")  (gen-api-index libs))
+  (map #(generate-documentation-to-file (str base-path "\\" % ".html") [%] libs) libs)
   )
 
 (defn generate-clr-docs
   [base-path]
-  (spit "c:\\temp\\docs\\generate-clr-docs.txt" "hi")
+
   (generate-documentation-to-files base-path 
            ['clojure.clr.io
             'clojure.clr.shell
